@@ -17,16 +17,10 @@ void main() {
   // This is a *live* test on the host platform: on Windows it actually spawns
   // the worker Isolate + COM SpellCheckerFactory to resolve the language tag,
   // exactly the code path shipped in `example/lib/main.dart`.
-  testWidgets('example displays the correct platform backend label', (
-    tester,
-  ) async {
+  testWidgets('example displays the correct platform backend label', (tester) async {
     await tester.pumpWidget(const NativeSpellCheckerExampleApp());
 
-    expect(
-      find.text('native_spell_checker'),
-      findsOneWidget,
-      reason: 'AppBar title.',
-    );
+    expect(find.text('native_spell_checker'), findsOneWidget, reason: 'AppBar title.');
     expect(find.text('Platform backend'), findsOneWidget);
 
     final expectedBackend = Platform.isWindows
@@ -45,9 +39,7 @@ void main() {
     );
   });
 
-  testWidgets('example resolves and displays the native language', (
-    tester,
-  ) async {
+  testWidgets('example resolves and displays the native language', (tester) async {
     await tester.pumpWidget(const NativeSpellCheckerExampleApp());
 
     expect(find.text('Native language'), findsOneWidget);
@@ -70,32 +62,21 @@ void main() {
     expect(valueFinder, findsOneWidget);
     final value = tester.widget<Text>(valueFinder).data ?? '';
 
-    expect(
-      value,
-      isNotEmpty,
-      reason: 'Native language value must be displayed.',
-    );
+    expect(value, isNotEmpty, reason: 'Native language value must be displayed.');
     expect(
       value,
       isNot('(loading...)'),
-      reason:
-          'After settle, the resolved language must replace the loading placeholder.',
+      reason: 'After settle, the resolved language must replace the loading placeholder.',
     );
     if (Platform.isAndroid) {
-      expect(
-        value,
-        Platform.localeName,
-        reason:
-            'Android surfaces the system locale (Flutter owns spell checking).',
-      );
+      expect(value, Platform.localeName, reason: 'Android surfaces the system locale (Flutter owns spell checking).');
     } else {
       // Desktop backends resolve a BCP-47 / Hunspell tag, or "(no dictionary
       // available)" on Linux when no dict is installed; never "(unsupported)".
       expect(
         value,
         isNot('(unsupported)'),
-        reason:
-            'Desktop backends must resolve a value or a "(no dictionary available)" fallback.',
+        reason: 'Desktop backends must resolve a value or a "(no dictionary available)" fallback.',
       );
     }
   });

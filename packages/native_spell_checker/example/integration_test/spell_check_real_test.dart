@@ -27,15 +27,18 @@ void main() {
       expect(
         service,
         isNotNull,
-        reason: 'NativeSpellChecker.service doit être non-null sur Windows. '
+        reason:
+            'NativeSpellChecker.service doit être non-null sur Windows. '
             'Si null, le singleton instance n’a pas construit WindowsSpellCheckService.',
       );
     });
 
     test('COM en STA renvoie de vraies suggestions pour un mot mal orthographié', () async {
       expect(service, isNotNull);
-      final List<SuggestionSpan>? result =
-          await service!.fetchSpellCheckSuggestions(const Locale('en', 'US'), 'hello wrld');
+      final List<SuggestionSpan>? result = await service!.fetchSpellCheckSuggestions(
+        const Locale('en', 'US'),
+        'hello wrld',
+      );
       expect(result, isNotNull, reason: 'COM a échoué en STA — voir debugPrint ci-dessus pour le HRESULT.');
       expect(result, isA<List<SuggestionSpan>>());
       expect(result!, isNotEmpty, reason: '"wrld" doit produire au moins un SuggestionSpan.');
@@ -49,8 +52,10 @@ void main() {
 
     test('COM en STA renvoie une liste vide pour un texte correct', () async {
       expect(service, isNotNull);
-      final List<SuggestionSpan>? result =
-          await service!.fetchSpellCheckSuggestions(const Locale('en', 'US'), 'hello world');
+      final List<SuggestionSpan>? result = await service!.fetchSpellCheckSuggestions(
+        const Locale('en', 'US'),
+        'hello world',
+      );
       expect(result, isNotNull, reason: 'COM a échoué en STA — voir debugPrint ci-dessus pour le HRESULT.');
       expect(result, isA<List<SuggestionSpan>>());
       expect(result!, isEmpty, reason: '"hello world" ne doit produire aucun SuggestionSpan.');
@@ -58,8 +63,7 @@ void main() {
 
     test('COM en STA ne lève pas et renvoie un résultat (non-null) pour du texte vide', () async {
       expect(service, isNotNull);
-      final List<SuggestionSpan>? result =
-          await service!.fetchSpellCheckSuggestions(const Locale('en', 'US'), '');
+      final List<SuggestionSpan>? result = await service!.fetchSpellCheckSuggestions(const Locale('en', 'US'), '');
       expect(result, isA<List<SuggestionSpan>>());
       expect(result, isNotNull);
       expect(result!, isEmpty);
@@ -68,8 +72,10 @@ void main() {
     test('appels COM répétés restent stables en STA (pas de fuite/blocage COM)', () async {
       expect(service, isNotNull);
       for (var i = 0; i < 5; i++) {
-        final List<SuggestionSpan>? result =
-            await service!.fetchSpellCheckSuggestions(const Locale('en', 'US'), 'wrld');
+        final List<SuggestionSpan>? result = await service!.fetchSpellCheckSuggestions(
+          const Locale('en', 'US'),
+          'wrld',
+        );
         expect(result, isNotNull, reason: 'Itération $i : COM a échoué en STA.');
         expect(result!, isNotEmpty);
       }
@@ -100,7 +106,8 @@ void main() {
       expect(
         timerLatencyMs,
         lessThan(50),
-        reason: 'Timer exécuté $timerLatencyMs ms après scheduling — l’UI '
+        reason:
+            'Timer exécuté $timerLatencyMs ms après scheduling — l’UI '
             'thread était bloquée par l’appel COM (jank perceptible à la frappe).',
       );
     });
@@ -114,8 +121,7 @@ void main() {
       expect(service, isNotNull);
       // On demande la locale neutre ; le backend doit résoudre vers une langue
       // supportée par l’OS (pas un retour null silencieux).
-      final List<SuggestionSpan>? result =
-          await service!.fetchSpellCheckSuggestions(Locale.fromSubtags(), 'test');
+      final List<SuggestionSpan>? result = await service!.fetchSpellCheckSuggestions(Locale.fromSubtags(), 'test');
       // On n’exige pas empty/non-empty (dépend de la langue résolue), mais on
       // exige que COM ait répondu (non-null) — preuve que la résolution marche.
       expect(result, isNotNull, reason: 'COM a échoué pendant la résolution de la locale système.');
@@ -124,18 +130,14 @@ void main() {
   });
 
   group('Wiring réel du widget TextField + configuration()', () {
-    testWidgets('un TextField configuré accepte la saisie sans jeter d’exception',
-        (WidgetTester tester) async {
+    testWidgets('un TextField configuré accepte la saisie sans jeter d’exception', (WidgetTester tester) async {
       final controller = TextEditingController();
       final SpellCheckConfiguration wiredConfig = NativeSpellChecker.configuration();
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: TextField(
-              controller: controller,
-              spellCheckConfiguration: wiredConfig,
-            ),
+            body: TextField(controller: controller, spellCheckConfiguration: wiredConfig),
           ),
         ),
       );
