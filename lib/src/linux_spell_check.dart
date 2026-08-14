@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:native_spell_checker/src/native_spell_check_backend.dart';
 
 // --- FFI bindings for libhunspell-1.7 ---
 
@@ -48,7 +49,7 @@ final class _HunspellBindings {
 ///
 /// Dictionaries are read from `/usr/share/hunspell/` — no bundled assets.
 /// The `libhunspell-1.7-0` system package must be installed.
-class LinuxSpellCheckService extends SpellCheckService {
+class LinuxSpellCheckService extends NativeSpellCheckBackend {
   /// Creates a [LinuxSpellCheckService].
   LinuxSpellCheckService();
 
@@ -79,35 +80,68 @@ class LinuxSpellCheckService extends SpellCheckService {
       _handle = null;
     }
 
-    final dictDir = "/usr/share/hunspell";
-    final candidates = <String>[
-      "$dictDir/$tag.aff",
-      "$dictDir/${locale.languageCode}_${locale.countryCode ?? ""}.aff",
-      "$dictDir/${locale.languageCode}.aff",
-    ];
-
-    String? affPath;
-    String? dicPath;
-    for (final aff in candidates) {
-      final dic = aff.replaceAll(".aff", ".dic");
-      if (File(aff).existsSync() && File(dic).existsSync()) {
-        affPath = aff;
-        dicPath = dic;
-        break;
-      }
-    }
-
-    if (affPath == null || dicPath == null) return;
+    final resolvedTag = _resolveDictionaryTag(locale);
+    if (resolvedTag == null) return;
 
     _ensureBindings();
 
+    final dictDir = "/usr/share/hunspell";
+    final affPath = "$dictDir/$resolvedTag.aff";
+    final dicPath = "$dictDir/$resolvedTag.dic";
+
     using((arena) {
-      final affPtr = affPath!.toNativeUtf8(allocator: arena);
-      final dicPtr = dicPath!.toNativeUtf8(allocator: arena);
+      final affPtr = affPath.toNativeUtf8(allocator: arena);
+      final dicPtr = dicPath.toNativeUtf8(allocator: arena);
       _handle = _bindings!.create(affPtr, dicPtr);
     });
 
+    // Track the *requested* tag (not the resolved one): repeated calls with
+    // the same locale skip re-resolution/reload; the actual loaded dict is
+    // the resolved one but is interchangeable for any locale of the same family.
     _currentLocale = tag;
+  }
+
+  /// Returns the Hunspell dictionary name (e.g. `"fr_FR"`, `"en_US"`) whose
+  /// `.aff`/`.dic` files exist under `/usr/share/hunspell/` for [locale],
+  /// or `null` when none of the candidates are installed.
+  ///
+  /// Candidates are tried in `[locale full tag]` → `[language only]` order,
+  /// so a region-specific dictionary wins over the bare-language one when
+  /// both are available. This is the same resolution used by
+  /// [_ensureDictionary], so the tag returned here is the dictionary the
+  /// spell checker will actually load.
+  String? _resolveDictionaryTag(Locale locale) {
+    final dictDir = "/usr/share/hunspell";
+    final candidates = <String>[_localeToHunspellName(locale), locale.languageCode];
+    for (final candidate in candidates) {
+      final aff = "$dictDir/$candidate.aff";
+      final dic = "$dictDir/$candidate.dic";
+      if (File(aff).existsSync() && File(dic).existsSync()) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> resolvedLanguageTag({Locale? locale}) async {
+    final loc = locale ?? _localeFromPlatformName();
+    return _resolveDictionaryTag(loc);
+  }
+
+  /// Parses [Platform.localeName] (POSIX or BCP-47, e.g. `"fr_FR"`,
+  /// `"en-US"`, `"fr_FR.UTF-8"`) into a [Locale] for dictionary resolution.
+  Locale _localeFromPlatformName() {
+    var name = Platform.localeName;
+    final dot = name.indexOf('.');
+    if (dot >= 0) {
+      name = name.substring(0, dot);
+    }
+    final parts = name.split(RegExp(r'[-_]'));
+    final language = parts.isNotEmpty && parts[0].isNotEmpty ? parts[0].toLowerCase() : 'en';
+    final countryRaw = parts.length > 1 ? parts[1] : null;
+    final country = (countryRaw != null && countryRaw.isNotEmpty) ? countryRaw.toUpperCase() : null;
+    return Locale(language, country);
   }
 
   /// Converts a [Locale] to a Hunspell dictionary name (e.g. "fr_FR", "en_US").

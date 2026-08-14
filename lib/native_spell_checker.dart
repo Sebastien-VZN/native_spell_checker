@@ -38,6 +38,30 @@ class NativeSpellChecker {
   /// where Flutter's [DefaultSpellCheckService] is used instead).
   static NativeSpellCheckService? get service => NativeSpellCheckService.instance;
 
+  /// Returns the language tag of the dictionary the OS spell checker will
+  /// actually use for [locale] (or the platform default locale when [locale]
+  /// is `null`), or `null` when no backend is available (Android).
+  ///
+  /// On desktop, this performs the same fallback chain used during spell
+  /// checking: requested locale → system default → fixed last resort
+  /// (`"en-US"` on Windows).
+  ///
+  /// The string format follows each platform's convention:
+  /// - **Windows**: BCP-47 tag (e.g. `"fr-FR"`, `"en-US"`).
+  /// - **Linux**: Hunspell dictionary name (e.g. `"fr_FR"`, `"en_US"`).
+  /// - **Android**: always `null` (Flutter's [DefaultSpellCheckService] is
+  ///   used). Use `Platform.localeName` to read the system locale instead.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final tag = await NativeSpellChecker.resolvedLanguageTag();
+  /// print('Native spell check language: $tag');
+  /// ```
+  static Future<String?> resolvedLanguageTag({Locale? locale}) {
+    return NativeSpellCheckService.instance?.resolvedLanguageTag(locale: locale) ?? Future<String?>.value(null);
+  }
+
   /// Returns a [SpellCheckConfiguration] wired to the native OS spell checker.
   ///
   /// On Android, returns `const SpellCheckConfiguration()` (empty) so Flutter

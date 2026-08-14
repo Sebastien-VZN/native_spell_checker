@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:native_spell_checker/src/native_spell_check_backend.dart';
 import 'package:win32/win32.dart';
 
 /// Windows spell check service backed by WinRT `ISpellChecker2`.
@@ -15,7 +16,7 @@ import 'package:win32/win32.dart';
 /// The whole COM call ([_spawnCheck]) runs in a worker [Isolate] (MTA) so the
 /// UI thread is never blocked: a single spell-check takes ~200 ms on Windows,
 /// which would otherwise freeze the UI at every keystroke.
-class WindowsSpellCheckService extends SpellCheckService {
+class WindowsSpellCheckService extends NativeSpellCheckBackend {
   /// Creates a [WindowsSpellCheckService].
   WindowsSpellCheckService();
 
@@ -32,6 +33,20 @@ class WindowsSpellCheckService extends SpellCheckService {
       return await Isolate.run<List<SuggestionSpan>>(() => _spawnCheck(locale, text));
     } on Exception catch (err) {
       debugPrint('WindowsSpellCheckService.fetchSpellCheckSuggestions: $err');
+      return null;
+    }
+  }
+
+  @override
+  Future<String?> resolvedLanguageTag({Locale? locale}) async {
+    try {
+      // Resolution needs the COM `ISpellCheckerFactory.isSupported` check,
+      // so it must run on the worker Isolate (MTA) — same rationale as
+      // [fetchSpellCheckSuggestions]. The closure only captures `locale`
+      // (Dart-serializable), no `this` capture.
+      return await Isolate.run<String>(() => _resolveLanguageTagInIsolate(locale));
+    } on Exception catch (err) {
+      debugPrint('WindowsSpellCheckService.resolvedLanguageTag: $err');
       return null;
     }
   }
@@ -67,10 +82,16 @@ class WindowsSpellCheckService extends SpellCheckService {
 
   /// Resolves the language tag, falling back to the system default if the
   /// requested locale is not supported.
-  static String _resolveLanguageTag(ISpellCheckerFactory factory, Arena arena, Locale locale) {
-    final requestedTag = _localeToLanguageTag(locale);
-    if (factory.isSupported(arena.pcwstr(requestedTag))) {
-      return requestedTag;
+  ///
+  /// When [locale] is `null`, the requested-locale step is skipped and
+  /// resolution starts at the system default locale — i.e. the language the
+  /// spell checker would select on its own.
+  static String _resolveLanguageTag(ISpellCheckerFactory factory, Arena arena, Locale? locale) {
+    if (locale != null) {
+      final requestedTag = _localeToLanguageTag(locale);
+      if (factory.isSupported(arena.pcwstr(requestedTag))) {
+        return requestedTag;
+      }
     }
 
     // Fall back to system default locale.
@@ -85,6 +106,18 @@ class WindowsSpellCheckService extends SpellCheckService {
 
     // Last resort: en-US.
     return 'en-US';
+  }
+
+  /// Worker-Isolate entry point for [resolvedLanguageTag]: initializes COM
+  /// on the MTA thread, creates the factory and returns the resolved tag.
+  /// Reuses [_resolveLanguageTag] so resolution is identical to a spell check.
+  static String _resolveLanguageTagInIsolate(Locale? locale) {
+    _ensureComInit();
+
+    return using((arena) {
+      final factory = arena.com<ISpellCheckerFactory>(SpellCheckerFactory);
+      return _resolveLanguageTag(factory, arena, locale);
+    });
   }
 
   static List<SuggestionSpan> _spawnCheck(Locale locale, String text) {

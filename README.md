@@ -56,13 +56,27 @@ final suggestions = await service?.fetchSpellCheckSuggestions(
 
 On Android, `NativeSpellChecker.service` returns `null` — Flutter automatically uses `DefaultSpellCheckService`.
 
+### Discover the language the spell checker will use
+
+```dart
+// null locale → resolve from the OS default locale.
+final tag = await NativeSpellChecker.resolvedLanguageTag();
+print('Native spell check language: $tag'); // e.g. "fr-FR" / "fr_FR"
+
+// explicit locale → same fallback chain used during spell checking.
+final enTag = await NativeSpellChecker.resolvedLanguageTag(locale: const Locale('en', 'US'));
+```
+
+Returns `null` on Android (where the plugin defers to Flutter). Use
+`Platform.localeName` to read the system locale on Android.
+
 ## How it works
 
-| Platform | Backend | Dictionary source |
-|---|---|---|
-| Android | Flutter `DefaultSpellCheckService` | OS (TextServicesManager) |
-| Windows | WinRT `ISpellChecker2` (COM FFI) | OS (Windows SpellChecker) |
-| Linux | `libhunspell-1.7` (dart:ffi) | `/usr/share/hunspell/` |
+| Platform | Backend | Dictionary source | Language tag format |
+|---|---|---|---|
+| Android | Flutter `DefaultSpellCheckService` | OS (TextServicesManager) | `null` (use `Platform.localeName`) |
+| Windows | WinRT `ISpellChecker2` (COM FFI) | OS (Windows SpellChecker) | BCP-47 (`fr-FR`, `en-US`) |
+| Linux | `libhunspell-1.7` (dart:ffi) | `/usr/share/hunspell/` | Hunspell (`fr_FR`, `en_US`) |
 
 ## License
 

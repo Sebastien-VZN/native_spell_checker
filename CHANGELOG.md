@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.0
+
+### Added
+
+- `NativeSpellChecker.resolvedLanguageTag({Locale? locale})` — returns the
+  language tag of the dictionary the OS spell checker will **actually** use
+  for the given locale (or the platform default locale when `locale` is
+  `null`), after applying the same fallback chain used during spell
+  checking.
+  - **Windows**: BCP-47 tag (e.g. `fr-FR`, `en-US`), resolved via
+    `ISpellCheckerFactory.isSupported` on a worker `Isolate` (MTA, same
+    rationale as spell checking — COM must not touch the STA UI thread).
+  - **Linux**: Hunspell dictionary name (e.g. `fr_FR`, `en_US`) of the first
+    `.aff`/`.dic` pair found in `/usr/share/hunspell/`. Returns `null` if no
+    dictionary is installed for the locale family.
+  - **Android**: always `null` — Flutter's `DefaultSpellCheckService` owns
+    spell checking; use `Platform.localeName` for the system locale.
+- Internal `NativeSpellCheckBackend` interface so `NativeSpellCheckService`
+  can delegate to platform methods without an `is`/cast per platform.
+
+### Fixed
+
+- Example: platform detection was broken. The previous implementation relied
+  on `service.toString().contains('Windows'|'Linux')`, but the default
+  `toString()` returns `Instance of 'NativeSpellCheckService'` (no override),
+  so the UI always showed "Unknown platform" on Windows and Linux. The
+  example now uses `dart:io`'s `Platform.isWindows` / `Platform.isLinux` /
+  `Platform.isAndroid` and displays the resolved native language tag.
+
+### Changed
+
+- `WindowsSpellCheckService` and `LinuxSpellCheckService` now
+  `extends NativeSpellCheckBackend` instead of `SpellCheckService` (no
+  observable API change; they still satisfy `SpellCheckService`).
+- `LinuxSpellCheckService._ensureDictionary` refactored to share
+  `_resolveDictionaryTag` with `resolvedLanguageTag`, so the reported tag and
+  the actually-loaded dictionary are guaranteed to agree.
+
 ## 0.2.0
 
 ### Fixed

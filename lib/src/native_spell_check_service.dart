@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:native_spell_checker/src/linux_spell_check.dart';
+import 'package:native_spell_checker/src/native_spell_check_backend.dart';
 import 'package:native_spell_checker/src/windows_spell_check.dart';
 
 /// A [SpellCheckService] that delegates to the operating system's native
@@ -18,7 +19,7 @@ class NativeSpellCheckService extends SpellCheckService {
 
   static NativeSpellCheckService? _instance;
 
-  final SpellCheckService _delegate;
+  final NativeSpellCheckBackend _delegate;
 
   /// Returns the platform-appropriate [NativeSpellCheckService], or `null`
   /// on Android (where Flutter's [DefaultSpellCheckService] is used).
@@ -39,5 +40,15 @@ class NativeSpellCheckService extends SpellCheckService {
   @override
   Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(Locale locale, String text) {
     return _delegate.fetchSpellCheckSuggestions(locale, text);
+  }
+
+  /// Returns the OS-resolved language tag for [locale] (or the platform
+  /// default locale when [locale] is `null`), or `null` when no backend is
+  /// available.
+  ///
+  /// See [NativeSpellCheckBackend.resolvedLanguageTag] for the exact tag
+  /// format per platform.
+  Future<String?> resolvedLanguageTag({Locale? locale}) {
+    return _delegate.resolvedLanguageTag(locale: locale);
   }
 }

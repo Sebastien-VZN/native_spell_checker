@@ -62,7 +62,8 @@ void main() {
       expect(
         dartPluginClasses,
         isNotEmpty,
-        reason: 'Aucun `dartPluginClass` déclaré dans pubspec.yaml — '
+        reason:
+            'Aucun `dartPluginClass` déclaré dans pubspec.yaml — '
             'le plugin ne sera pas enregistré par Flutter au build.',
       );
     });
@@ -79,7 +80,8 @@ void main() {
         expect(
           className,
           'NativeSpellChecker',
-          reason: 'pubspec.yaml déclare `dartPluginClass: $className` pour la '
+          reason:
+              'pubspec.yaml déclare `dartPluginClass: $className` pour la '
               "plateforme `$platform`, mais le symbole exporté par le plugin est "
               "'NativeSpellChecker'. Les deux doivent correspondre exactement.",
         );
