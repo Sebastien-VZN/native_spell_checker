@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:native_spell_checker/src/native_spell_check_service.dart';
 
 export 'package:flutter/widgets.dart' show SpellCheckConfiguration;
+export 'package:native_spell_checker/src/spell_check_text_field.dart';
 
 /// Entry point for the native spell checker plugin.
 ///

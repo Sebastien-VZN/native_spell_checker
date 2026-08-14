@@ -100,7 +100,7 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
             const SizedBox(height: 24),
             Text('Try typing some misspelled words:', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            TextField(
+            SpellCheckTextField(
               controller: _controller,
               focusNode: _focusNode,
               maxLines: 5,
@@ -108,10 +108,6 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
                 border: OutlineInputBorder(),
                 hintText: 'Type here to see spell check in action...',
               ),
-              spellCheckConfiguration: NativeSpellChecker.configuration(),
-              contextMenuBuilder: (Platform.isWindows || Platform.isLinux)
-                  ? NativeSpellChecker.contextMenuBuilder
-                  : null,
             ),
             const SizedBox(height: 24),
             const Text(

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.0
+
+### Added
+
+- `NativeSpellChecker.contextMenuBuilder` — static method that builds a
+  context menu with spelling suggestions inserted above the standard
+  Cut/Copy/Paste/Select All buttons. Clicking a suggestion replaces the
+  misspelled word and repositions the caret.
+- `NativeSpellCheckService.findSuggestionSpanAt(String text, int offset)` —
+  synchronous lookup into the last spell-check result cache. Returns the
+  `SuggestionSpan` covering `offset`, or `null` when the cache is stale (text
+  changed since the last `fetchSpellCheckSuggestions` call). Designed for
+  use inside a `contextMenuBuilder`, which must be synchronous.
+- `SpellCheckTextField` — drop-in `TextField` replacement that pre-wires
+  spell checking, context menu suggestions, and right-click cursor
+  positioning. On desktop (Windows, Linux), a `Listener` intercepts the
+  secondary button (right-click), moves the caret to the text position
+  under the cursor via `RenderEditable.getPositionForPoint`, then lets
+  Flutter open the context menu — so suggestions appear for the
+  right-clicked word without requiring a prior left-click selection.
+  On Android, behaves as a plain `TextField` with
+  `SpellCheckConfiguration()` (the OS handles everything natively).
+
+### Changed
+
+- `NativeSpellCheckService.fetchSpellCheckSuggestions` is now `async` and
+  caches the last result (`_lastText` / `_lastSpans`) so
+  `findSuggestionSpanAt` can serve the context menu synchronously without
+  triggering a new OS spell check.
+
 ## 0.3.0
 
 ### Added
