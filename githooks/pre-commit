@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Pre-commit hook: enforce `dart format` (page_width=120) on staged Dart files.
+# Keeps the repo aligned with CI (.github/workflows/build_check.yml).
+#
+# This hook is versioned in githooks/ and activated via:
+#   git config core.hooksPath githooks
+# Or run _script/setup_hooks.bat (Windows) / _script/setup_hooks.sh (Linux).
+
+set -e
+
+# Collect staged *.dart files (added/copied/modified)
+STAGED=$(git diff --cached --name-only --diff-filter=ACM -- '*.dart')
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+echo "pre-commit: running dart format -l 120 on staged Dart files..."
+
+# Format only staged files (faster than full repo).
+# shellcheck disable=SC2086
+dart format -l 120 $STAGED
+
+# Re-stage the formatted files.
+git add $STAGED
+
+echo "pre-commit: format applied and re-staged."

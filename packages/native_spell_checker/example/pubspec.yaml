@@ -1,4 +1,5 @@
 name: example
+resolution: workspace
 description: "Example app for the native_spell_checker package."
 publish_to: 'none'
 version: 1.1.0+2

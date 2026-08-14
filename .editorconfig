@@ -11,6 +11,24 @@ insert_final_newline = true
 [*.dart]
 max_line_length = 120
 
+[{*.kt,*.kts}]
+max_line_length = 120
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_continuation_indent_size = 4
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_name_count_to_use_star_import = 999
+ij_kotlin_name_count_to_use_star_import_for_members = 999
+
+[*.java]
+indent_size = 4
+
+[*.gradle]
+indent_size = 4
+
+[*.xml]
+indent_size = 4
+
 [*.yaml]
 indent_size = 2
 

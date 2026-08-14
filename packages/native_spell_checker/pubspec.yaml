@@ -1,10 +1,11 @@
 name: native_spell_checker
+resolution: workspace
 description: >-
   A Flutter plugin for native OS spell checking on desktop (Windows, Linux)
   — zero bundled dictionaries, uses the operating system's built-in spell
   checker. On Android, it defers to Flutter's built-in DefaultSpellCheckService.
 version: 0.3.0
-repository: https://github.com/Sebastien-VZN/native_spell_checker
+repository: https://github.com/Sebastien-VZN/native_spell_checker/tree/main/packages/native_spell_checker
 
 environment:
   sdk: ^3.12.2
