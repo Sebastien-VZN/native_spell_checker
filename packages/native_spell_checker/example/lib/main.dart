@@ -41,9 +41,6 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
   }
 
   Future<void> _updatePlatformInfo() async {
-    // Platform detection — `dart:io` Platform.isX is the only reliable source
-    // of truth. The previous code relied on `service.toString().contains(...)`
-    // which never matched (default `toString()` => `Instance of '...'`).
     if (Platform.isWindows) {
       _platformInfo = 'Windows — using WinRT ISpellChecker2';
     } else if (Platform.isLinux) {
@@ -54,9 +51,6 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
       _platformInfo = 'Unknown platform';
     }
 
-    // Native language detection — on desktop, ask the OS spell checker
-    // which dictionary it will actually use (after fallback). On Android,
-    // the plugin defers to Flutter, so fall back to the system locale.
     if (Platform.isWindows || Platform.isLinux) {
       final tag = await NativeSpellChecker.resolvedLanguageTag();
       _nativeLanguage = tag ?? '(no dictionary available)';

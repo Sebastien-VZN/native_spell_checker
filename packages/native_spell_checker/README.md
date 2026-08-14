@@ -36,25 +36,86 @@ Dictionaries are provided by `hunspell-*` packages and stored in `/usr/share/hun
 
 ## Usage
 
+### Option A — drop-in widget (recommended)
+
+Use `SpellCheckTextField` or `SpellCheckTextFormField` as a drop-in replacement
+for `TextField` / `TextFormField`. Spell checking, context menu suggestions, and
+right-click caret positioning are all pre-wired:
+
 ```dart
 import 'package:native_spell_checker/native_spell_checker.dart';
 
-TextField(
-  spellCheckConfiguration: NativeSpellChecker.configuration(),
+SpellCheckTextField(
+  controller: myController,
+  maxLines: 5,
+  decoration: const InputDecoration(hintText: 'Type here...'),
 )
 ```
 
-Or use the service directly:
+For forms with validation:
 
 ```dart
-final service = NativeSpellChecker.service;
-final suggestions = await service?.fetchSpellCheckSuggestions(
-  Locale('fr', 'FR'),
-  'Hello wrld',
-);
+SpellCheckTextFormField(
+  controller: myController,
+  validator: (value) => value!.isEmpty ? 'Required' : null,
+  maxLines: 5,
+  decoration: const InputDecoration(hintText: 'Type here...'),
+  misspelledTextStyle: myCustomStyle,
+  misspelledSelectionColor: Colors.red,
+)
 ```
 
-On Android, `NativeSpellChecker.service` returns `null` — Flutter automatically uses `DefaultSpellCheckService`.
+#### Why the wrapper widget?
+
+On desktop (Windows, Linux), Flutter's `TextField` does **not** reposition the
+caret when the user right-clicks. The internal `TextSelectionGestureDetector`
+only stores the tap position to anchor the context menu visually — it does not
+move the text selection to the clicked word. So the context menu's suggestions
+are looked up at the *current* caret position, not at the word the user actually
+right-clicked.
+
+`SpellCheckTextField` / `SpellCheckTextFormField` wrap the native `TextField` /
+`TextFormField` in a `Listener` that intercepts the secondary button
+(right-click), repositions the caret to the clicked word via
+`RenderEditable.getPositionForPoint`, then lets Flutter open the context menu
+normally. The suggestions shown are for the right-clicked word, without
+requiring a prior left-click selection.
+
+On Android, the wrapper is a no-op — the OS handles everything natively.
+
+### Option B — manual wiring
+
+If you need full control, wire the three building blocks yourself:
+
+```dart
+import 'package:flutter/gestures.dart' show kSecondaryButton;
+import 'package:native_spell_checker/native_spell_checker.dart';
+
+final GlobalKey _key = GlobalKey();
+
+Listener(
+  onPointerDown: (event) {
+    if (event.buttons == kSecondaryButton) {
+      NativeSpellChecker.onSecondaryTapDown(_key, controller, event);
+    }
+  },
+  child: TextField(
+    key: _key,
+    controller: controller,
+    spellCheckConfiguration: NativeSpellChecker.configuration(),
+    contextMenuBuilder: NativeSpellChecker.contextMenuBuilder,
+  ),
+)
+```
+
+Available building blocks:
+
+- `NativeSpellChecker.configuration(misspelledTextStyle)` — returns a
+  `SpellCheckConfiguration` wired to the OS spell checker.
+- `NativeSpellChecker.contextMenuBuilder` — builds a context menu with spelling
+  suggestions above the standard Cut/Copy/Paste/Select All buttons.
+- `NativeSpellChecker.onSecondaryTapDown(key, controller, event)` — repositions
+  the caret to the right-click location.
 
 ### Discover the language the spell checker will use
 

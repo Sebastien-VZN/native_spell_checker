@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderEditable;
 import 'package:flutter/services.dart';
 
 import 'package:native_spell_checker/src/native_spell_check_service.dart';
@@ -21,7 +22,7 @@ export 'package:native_spell_checker/src/spell_check_text_field.dart';
 class NativeSpellChecker {
   const NativeSpellChecker._();
 
-  static const TextStyle _defaultMisspelledTextStyle = TextStyle(
+  static const TextStyle defaultMisspelledTextStyle = TextStyle(
     decoration: TextDecoration.underline,
     decorationColor: Colors.red,
     decorationStyle: TextDecorationStyle.wavy,
@@ -72,7 +73,7 @@ class NativeSpellChecker {
     if (svc != null) {
       return SpellCheckConfiguration(
         spellCheckService: svc,
-        misspelledTextStyle: misspelledTextStyle ?? _defaultMisspelledTextStyle,
+        misspelledTextStyle: misspelledTextStyle ?? defaultMisspelledTextStyle,
       );
     }
     // Android: let Flutter use DefaultSpellCheckService.
@@ -139,5 +140,57 @@ class NativeSpellChecker {
       anchors: editableTextState.contextMenuAnchors,
       buttonItems: buttonItems,
     );
+  }
+
+  /// Repositions the caret to the text location under a right-click so the
+  /// [contextMenuBuilder] shows suggestions for the clicked word — without
+  /// requiring a prior left-click selection.
+  ///
+  /// Call this from a `Listener(onPointerDown: ...)` wrapping your
+  /// `TextField` / `TextFormField`, filtering for `kSecondaryButton`.
+  /// The [textFieldKey] must be the `GlobalKey` assigned to the
+  /// `TextField` / `TextFormField`. The [controller] is the
+  /// `TextEditingController` backing the field.
+  ///
+  /// On Android, this is a no-op (the OS handles everything natively).
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// final GlobalKey _key = GlobalKey();
+  ///
+  /// Listener(
+  ///   onPointerDown: (event) {
+  ///     if (event.buttons == kSecondaryButton) {
+  ///       NativeSpellChecker.onSecondaryTapDown(_key, controller, event);
+  ///     }
+  ///   },
+  ///   child: TextFormField(
+  ///     key: _key,
+  ///     controller: controller,
+  ///     spellCheckConfiguration: NativeSpellChecker.configuration(),
+  ///     contextMenuBuilder: NativeSpellChecker.contextMenuBuilder,
+  ///   ),
+  /// )
+  /// ```
+  static void onSecondaryTapDown(GlobalKey textFieldKey, TextEditingController controller, PointerDownEvent event) {
+    final box = textFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    final editable = _findRenderEditable(box);
+    if (editable == null) return;
+
+    final position = editable.getPositionForPoint(event.position);
+    controller.selection = TextSelection.fromPosition(position);
+  }
+
+  /// Walks the render subtree to find the first [RenderEditable].
+  static RenderEditable? _findRenderEditable(RenderObject root) {
+    if (root is RenderEditable) return root;
+    RenderEditable? result;
+    root.visitChildren((child) {
+      result ??= _findRenderEditable(child);
+    });
+    return result;
   }
 }

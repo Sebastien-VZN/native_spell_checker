@@ -25,8 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   under the cursor via `RenderEditable.getPositionForPoint`, then lets
   Flutter open the context menu — so suggestions appear for the
   right-clicked word without requiring a prior left-click selection.
-  On Android, behaves as a plain `TextField` with
-  `SpellCheckConfiguration()` (the OS handles everything natively).
+  On Android, behaves as a plain `TextField` (the OS handles everything
+  natively).
+- `SpellCheckTextFormField` — drop-in `TextFormField` replacement with
+  the same spell-check and right-click wiring as `SpellCheckTextField`,
+  plus form-specific params (`validator`, `onFieldSubmitted`, `onSaved`,
+  `initialValue`, `autovalidateMode`).
+- `SpellCheckTextMixin` — shared logic used by both widgets, so the
+  desktop right-click caret placement and spell-check wiring live in one
+  place.
+- `NativeSpellChecker.defaultMisspelledTextStyle` — public constant so
+  consumers can reuse the plugin's default red wavy underline style.
+- Both `SpellCheckTextField` and `SpellCheckTextFormField` accept
+  `misspelledTextStyle` and `misspelledSelectionColor` params to customize
+  the spell-check visual style.
 
 ### Changed
 
