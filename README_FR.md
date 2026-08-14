@@ -1,9 +1,5 @@
 # native_spell_checker
 
-[![pub package](https://img.shields.io/pub/v/native_spell_checker.svg)](https://pub.dev/packages/native_spell_checker)
-[![likes](https://img.shields.io/pub/likes/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
-[![pub points](https://img.shields.io/pub/points/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
-
 Un plugin Flutter pour la correction orthographique native de l'OS sur desktop (Windows, Linux) — zéro dictionnaire bundlé, utilise le correcteur orthographique intégré du système d'exploitation. Sur Android, il délègue au `DefaultSpellCheckService` intégré de Flutter.
 
 - **pub.dev :** https://pub.dev/packages/native_spell_checker

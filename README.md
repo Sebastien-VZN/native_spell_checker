@@ -1,9 +1,5 @@
 # native_spell_checker
 
-[![pub package](https://img.shields.io/pub/v/native_spell_checker.svg)](https://pub.dev/packages/native_spell_checker)
-[![likes](https://img.shields.io/pub/likes/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
-[![pub points](https://img.shields.io/pub/points/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
-
 A Flutter plugin for native OS spell checking on desktop (Windows, Linux) — zero bundled dictionaries, uses the operating system's built-in spell checker. On Android, it defers to Flutter's built-in `DefaultSpellCheckService`.
 
 - **pub.dev:** https://pub.dev/packages/native_spell_checker
