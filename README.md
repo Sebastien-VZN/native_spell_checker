@@ -4,23 +4,20 @@
 [![likes](https://img.shields.io/pub/likes/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
 [![pub points](https://img.shields.io/pub/points/native_spell_checker?logo=dart)](https://pub.dev/packages/native_spell_checker/score)
 
-A Flutter plugin for native OS spell checking on desktop (Windows, Linux) —
-zero bundled dictionaries, uses the operating system's built-in spell checker.
-On Android, it defers to Flutter's built-in `DefaultSpellCheckService`.
+A Flutter plugin for native OS spell checking on desktop (Windows, Linux) — zero bundled dictionaries, uses the operating system's built-in spell checker. On Android, it defers to Flutter's built-in `DefaultSpellCheckService`.
 
-## Repository layout
+- **pub.dev:** https://pub.dev/packages/native_spell_checker
+- **Repository:** https://github.com/Sebastien-VZN/native_spell_checker
 
-```
-.
-+- pubspec.yaml                 # the published Flutter plugin
-+- lib/                         # plugin Dart API + FFI backends
-+- test/                        # unit & contract tests
-+- example/                      # runnable example app (Windows/Linux/Android)
-+- doc/                          # architecture & testing notes
-+- CHANGELOG.md, LICENSE, README.md
-```
+> For the full technical reference (architecture, design decisions, testing protocol), see [README_GH.md](https://github.com/Sebastien-VZN/native_spell_checker/blob/main/README_GH.md).
+>
+> Version française : [README_FR.md](https://github.com/Sebastien-VZN/native_spell_checker/blob/main/README_FR.md).
 
-This README is the package page shown on pub.dev.
+## Screenshots
+
+| Windows | Android |
+|---|---|
+| ![Windows demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_windows.jpg) | ![Android demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_android.jpg) |
 
 ## Features
 
@@ -30,6 +27,8 @@ This README is the package page shown on pub.dev.
 - **Zero bundled dictionaries** — the OS provides everything.
 - **Multi-language** — automatically uses the OS-installed dictionaries for the current locale.
 - **100% offline** — no cloud APIs, no network calls.
+- **Context menu suggestions** — right-click a misspelled word on desktop to see OS suggestions.
+- **Drop-in widgets** — `SpellCheckTextField` / `SpellCheckTextFormField` as direct replacements for `TextField` / `TextFormField`.
 
 ## Getting started
 
@@ -54,9 +53,7 @@ Dictionaries are provided by `hunspell-*` packages and stored in `/usr/share/hun
 
 ### Option A — drop-in widget (recommended)
 
-Use `SpellCheckTextField` or `SpellCheckTextFormField` as a drop-in replacement
-for `TextField` / `TextFormField`. Spell checking, context menu suggestions, and
-right-click caret positioning are all pre-wired:
+Use `SpellCheckTextField` or `SpellCheckTextFormField` as a drop-in replacement for `TextField` / `TextFormField`. Spell checking, context menu suggestions, and right-click caret positioning are all pre-wired:
 
 ```dart
 import 'package:native_spell_checker/native_spell_checker.dart';
@@ -83,19 +80,9 @@ SpellCheckTextFormField(
 
 #### Why the wrapper widget?
 
-On desktop (Windows, Linux), Flutter's `TextField` does **not** reposition the
-caret when the user right-clicks. The internal `TextSelectionGestureDetector`
-only stores the tap position to anchor the context menu visually — it does not
-move the text selection to the clicked word. So the context menu's suggestions
-are looked up at the *current* caret position, not at the word the user actually
-right-clicked.
+On desktop (Windows, Linux), Flutter's `TextField` does **not** reposition the caret when the user right-clicks. The internal `TextSelectionGestureDetector` only stores the tap position to anchor the context menu visually — it does not move the text selection to the clicked word. So the context menu's suggestions are looked up at the *current* caret position, not at the word the user actually right-clicked.
 
-`SpellCheckTextField` / `SpellCheckTextFormField` wrap the native `TextField` /
-`TextFormField` in a `Listener` that intercepts the secondary button
-(right-click), repositions the caret to the clicked word via
-`RenderEditable.getPositionForPoint`, then lets Flutter open the context menu
-normally. The suggestions shown are for the right-clicked word, without
-requiring a prior left-click selection.
+`SpellCheckTextField` / `SpellCheckTextFormField` wrap the native `TextField` / `TextFormField` in a `Listener` that intercepts the secondary button (right-click), repositions the caret to the clicked word via `RenderEditable.getPositionForPoint`, then lets Flutter open the context menu normally. The suggestions shown are for the right-clicked word, without requiring a prior left-click selection.
 
 On Android, the wrapper is a no-op — the OS handles everything natively.
 
@@ -126,26 +113,22 @@ Listener(
 
 Available building blocks:
 
-- `NativeSpellChecker.configuration(misspelledTextStyle)` — returns a
-  `SpellCheckConfiguration` wired to the OS spell checker.
-- `NativeSpellChecker.contextMenuBuilder` — builds a context menu with spelling
-  suggestions above the standard Cut/Copy/Paste/Select All buttons.
-- `NativeSpellChecker.onSecondaryTapDown(key, controller, event)` — repositions
-  the caret to the right-click location.
+- `NativeSpellChecker.configuration(misspelledTextStyle)` — returns a `SpellCheckConfiguration` wired to the OS spell checker.
+- `NativeSpellChecker.contextMenuBuilder` — builds a context menu with spelling suggestions above the standard Cut/Copy/Paste/Select All buttons.
+- `NativeSpellChecker.onSecondaryTapDown(key, controller, event)` — repositions the caret to the right-click location.
 
 ### Discover the language the spell checker will use
 
 ```dart
 // null locale → resolve from the OS default locale.
 final tag = await NativeSpellChecker.resolvedLanguageTag();
-print('Native spell check language: $tag'); // e.g. "fr-FR" / "fr_FR"
+// e.g. "fr-FR" (Windows BCP-47) / "fr_FR" (Linux Hunspell) / null (Android)
 
 // explicit locale → same fallback chain used during spell checking.
 final enTag = await NativeSpellChecker.resolvedLanguageTag(locale: const Locale('en', 'US'));
 ```
 
-Returns `null` on Android (where the plugin defers to Flutter). Use
-`Platform.localeName` to read the system locale on Android.
+Returns `null` on Android (where the plugin defers to Flutter). Use `Platform.localeName` to read the system locale on Android.
 
 ## How it works
 
@@ -155,25 +138,16 @@ Returns `null` on Android (where the plugin defers to Flutter). Use
 | Windows | WinRT `ISpellChecker2` (COM FFI) | OS (Windows SpellChecker) | BCP-47 (`fr-FR`, `en-US`) |
 | Linux | `libhunspell-1.7` (dart:ffi) | `/usr/share/hunspell/` | Hunspell (`fr_FR`, `en_US`) |
 
-## Development
+## Platforms
 
-Run once at the repository root (resolves package dependencies):
-
-```bash
-flutter pub get
-```
-
-Then run/debug the example app from `example/`. Tests run from the repo root:
-
-```bash
-flutter test                # unit & contract tests (test/)
-flutter analyze             # analyze the package (lib/, test/)
-```
-
-See [`doc/architecture.md`](doc/architecture.md) and
-[`doc/testing.md`](doc/testing.md) for internals, and
-[`CHANGELOG.md`](CHANGELOG.md) for release history.
+| Platform | Status |
+|---|---|
+| Android | Manually validated |
+| Linux | Manually validated |
+| Windows | Manually validated |
+| iOS | Not supported |
+| macOS | Not supported |
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/Sebastien-VZN/native_spell_checker/blob/main/LICENSE).
