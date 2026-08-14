@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Windows",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/example/lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "toolArgs": ["-d", "windows"]
+    },
+    {
+      "name": "Linux",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/example/lib/main.dart",
+      "cwd": "${workspaceFolder}/example",
+      "toolArgs": ["-d", "linux"]
+    },
+    {
+      "name": "Android",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/example/lib/main.dart",
+      "cwd": "${workspaceFolder}/example"
+    }
+  ]
+}
