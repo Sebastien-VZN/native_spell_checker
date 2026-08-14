@@ -23,9 +23,9 @@ Zero bundled dictionaries. The OS provides everything. 100% offline.
 
 ## Screenshots
 
-| Windows | Android |
-|---|---|
-| ![Windows demo](doc/screen_windows.jpg) | ![Android demo](doc/screen_android.jpg) |
+| Windows | Linux | Android |
+|---|---|---|
+| ![Windows demo](doc/screen_windows.jpg) | ![Linux demo](doc/screen_linux.jpg) | ![Android demo](doc/screen_android.jpg) |
 
 ## Architecture — two API levels
 

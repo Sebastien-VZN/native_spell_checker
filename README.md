@@ -15,9 +15,9 @@ A Flutter plugin for native OS spell checking on desktop (Windows, Linux) — ze
 
 ## Screenshots
 
-| Windows | Android |
-|---|---|
-| ![Windows demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_windows.jpg) | ![Android demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_android.jpg) |
+| Windows | Linux | Android |
+|---|---|---|
+| ![Windows demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_windows.jpg) | ![Linux demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_linux.jpg) | ![Android demo](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_android.jpg) |
 
 ## Features
 

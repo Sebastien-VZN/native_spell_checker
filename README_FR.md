@@ -15,9 +15,9 @@ Un plugin Flutter pour la correction orthographique native de l'OS sur desktop (
 
 ## Captures d'écran
 
-| Windows | Android |
-|---|---|
-| ![Démo Windows](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_windows.jpg) | ![Démo Android](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_android.jpg) |
+| Windows | Linux | Android |
+|---|---|---|
+| ![Démo Windows](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_windows.jpg) | ![Démo Linux](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_linux.jpg) | ![Démo Android](https://raw.githubusercontent.com/Sebastien-VZN/native_spell_checker/main/doc/screen_android.jpg) |
 
 ## Fonctionnalités
 

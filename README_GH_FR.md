@@ -23,9 +23,9 @@ Zéro dictionnaire bundlé. L'OS fournit tout. 100% hors ligne.
 
 ## Captures d'écran
 
-| Windows | Android |
-|---|---|
-| ![Démo Windows](doc/screen_windows.jpg) | ![Démo Android](doc/screen_android.jpg) |
+| Windows | Linux | Android |
+|---|---|---|
+| ![Démo Windows](doc/screen_windows.jpg) | ![Démo Linux](doc/screen_linux.jpg) | ![Démo Android](doc/screen_android.jpg) |
 
 ## Architecture — deux niveaux d'API
 
