@@ -22,8 +22,8 @@ migrate_working_dir/
 #.vscode/
 
 # Flutter/Dart/Pub related
-# Pub workspace: a single shared pubspec.lock lives at the repo root and should
-# not be committed (this repo publishes packages, not apps).
+# pubspec.lock is not committed — this repo publishes a plugin package, and
+# lockfiles for publishable libraries should not be committed.
 pubspec.lock
 **/doc/api/
 .dart_tool/

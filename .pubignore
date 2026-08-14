@@ -1,0 +1,37 @@
+# Pub publish exclusions.
+# NOTE: a .pubignore OVERRIDES .gitignore for `dart pub publish`, so the
+# relevant non-hidden gitignore patterns are reproduced here to keep
+# generated artifacts out of the published package.
+# Hidden files/dirs (starting with '.') are auto-excluded by pub.
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+pubspec.lock
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec_overrides.yaml
+**/build/
+coverage/
+
+# Repo-only: internal tooling, not part of the published package
+_script/
+githooks/

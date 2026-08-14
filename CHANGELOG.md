@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caches the last result (`_lastText` / `_lastSpans`) so
   `findSuggestionSpanAt` can serve the context menu synchronously without
   triggering a new OS spell check.
+- Repository flattened to a single-package layout: the plugin now lives at
+  the repository root instead of under `packages/native_spell_checker/`. The
+  Dart pub workspace was removed (no longer needed with a single package),
+  the `repository` URL simplified, a `.pubignore` excludes repo-only tooling
+  (`_script/`, `githooks/`) from the published archive, and `docs/` was
+  renamed to `doc/` to follow the Pub layout convention. No API or behavior
+  change for consumers.
 
 ## 0.3.0
 
