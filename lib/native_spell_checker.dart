@@ -20,6 +20,13 @@ export 'package:flutter/widgets.dart' show SpellCheckConfiguration;
 class NativeSpellChecker {
   const NativeSpellChecker._();
 
+  /// Required by Flutter's plugin registration system for federated plugins
+  /// using `dartPluginClass`. This plugin is pure Dart (no native code), so
+  /// registration is a no-op.
+  static void registerWith(Object? binding) {
+    // No-op — no native platform channel to register.
+  }
+
   /// Returns the platform-appropriate [NativeSpellCheckService], or `null`
   /// on platforms where the OS spell checker is not available (e.g. Android,
   /// where Flutter's [DefaultSpellCheckService] is used instead).
