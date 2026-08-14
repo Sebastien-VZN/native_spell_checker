@@ -23,7 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Android**: always `null` — Flutter's `DefaultSpellCheckService` owns
     spell checking; use `Platform.localeName` for the system locale.
 - Internal `NativeSpellCheckBackend` interface so `NativeSpellCheckService`
-  can delegate to platform methods without an `is`/cast per platform.
+  can delegate to platform methods (such as `resolvedLanguageTag`) without an
+  `is`/cast per platform.
+- Example app now displays a "Native language" line sourcing
+  `NativeSpellChecker.resolvedLanguageTag()` on desktop (and
+  `Platform.localeName` on Android).
+- Live tests for `resolvedLanguageTag` on Windows: cross-consistency with
+  `fetchSpellCheckSuggestions` (same `_resolveLanguageTag` code path),
+  fallback for unsupported locales, stability across isolates, and concurrent
+  interleaving with spell checking.
 
 ### Fixed
 
@@ -33,12 +41,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   so the UI always showed "Unknown platform" on Windows and Linux. The
   example now uses `dart:io`'s `Platform.isWindows` / `Platform.isLinux` /
   `Platform.isAndroid` and displays the resolved native language tag.
+- Example: `example/test/widget_test.dart` was an unmodified Flutter template
+  referencing a non-existent `MyApp` class (compilation failure). Replaced
+  with a real widget test exercising the platform-backend label and the
+  resolved native language (escaped from `FakeAsync` via `tester.runAsync`
+  so the Windows COM `Isolate.run` can complete during the test).
 
 ### Changed
 
 - `WindowsSpellCheckService` and `LinuxSpellCheckService` now
   `extends NativeSpellCheckBackend` instead of `SpellCheckService` (no
   observable API change; they still satisfy `SpellCheckService`).
+- `WindowsSpellCheckService._resolveLanguageTag` now accepts `Locale?`:
+  a `null` locale skips the requested-locale step and resolves straight to
+  the system default (`GetUserDefaultLocaleName`), i.e. the language the spell
+  checker would select on its own.
 - `LinuxSpellCheckService._ensureDictionary` refactored to share
   `_resolveDictionaryTag` with `resolvedLanguageTag`, so the reported tag and
   the actually-loaded dictionary are guaranteed to agree.
