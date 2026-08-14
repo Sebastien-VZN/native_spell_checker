@@ -23,7 +23,7 @@ class NativeSpellChecker {
   /// Required by Flutter's plugin registration system for federated plugins
   /// using `dartPluginClass`. This plugin is pure Dart (no native code), so
   /// registration is a no-op.
-  static void registerWith(Object? binding) {
+  static void registerWith() {
     // No-op — no native platform channel to register.
   }
 
