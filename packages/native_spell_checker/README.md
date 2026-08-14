@@ -21,7 +21,7 @@ Add the dependency:
 
 ```yaml
 dependencies:
-  native_spell_checker: ^0.1.0
+  native_spell_checker: ^0.3.0
 ```
 
 ### Linux prerequisite
