@@ -15,10 +15,7 @@ class NativeSpellCheckerExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'native_spell_checker Example',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue), useMaterial3: true),
       home: const SpellCheckDemoPage(),
     );
   }
@@ -90,27 +87,18 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Platform backend',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Platform backend', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(_platformInfo),
             const SizedBox(height: 8),
-            Text(
-              'Native language',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Native language', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               _nativeLanguage.isEmpty ? '(loading...)' : _nativeLanguage,
               key: const ValueKey('nativeLanguageValue'),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Try typing some misspelled words:',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('Try typing some misspelled words:', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             TextField(
               controller: _controller,
@@ -121,6 +109,9 @@ class _SpellCheckDemoPageState extends State<SpellCheckDemoPage> {
                 hintText: 'Type here to see spell check in action...',
               ),
               spellCheckConfiguration: NativeSpellChecker.configuration(),
+              contextMenuBuilder: (Platform.isWindows || Platform.isLinux)
+                  ? NativeSpellChecker.contextMenuBuilder
+                  : null,
             ),
             const SizedBox(height: 24),
             const Text(

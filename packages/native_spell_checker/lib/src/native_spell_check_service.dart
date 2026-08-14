@@ -21,6 +21,16 @@ class NativeSpellCheckService extends SpellCheckService {
 
   final NativeSpellCheckBackend _delegate;
 
+  /// The text from the last successful [fetchSpellCheckSuggestions] call.
+  ///
+  /// Used by [findSuggestionSpanAt] to detect stale cache — when the text
+  /// has changed since the last spell check, the cache is invalidated.
+  String? _lastText;
+
+  /// The suggestion spans from the last successful
+  /// [fetchSpellCheckSuggestions] call.
+  List<SuggestionSpan>? _lastSpans;
+
   /// Returns the platform-appropriate [NativeSpellCheckService], or `null`
   /// on Android (where Flutter's [DefaultSpellCheckService] is used).
   ///
@@ -38,8 +48,30 @@ class NativeSpellCheckService extends SpellCheckService {
   }
 
   @override
-  Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(Locale locale, String text) {
-    return _delegate.fetchSpellCheckSuggestions(locale, text);
+  Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(Locale locale, String text) async {
+    final result = await _delegate.fetchSpellCheckSuggestions(locale, text);
+    if (result != null) {
+      _lastText = text;
+      _lastSpans = result;
+    }
+    return result;
+  }
+
+  /// Returns the [SuggestionSpan] covering [offset] in [text], or `null`
+  /// when no cached spell-check result is available or the text has changed
+  /// since the last [fetchSpellCheckSuggestions] call.
+  ///
+  /// This is a synchronous lookup into the last spell-check result — it does
+  /// not trigger a new OS spell check. It is designed to be called from a
+  /// context menu builder, which must be synchronous.
+  SuggestionSpan? findSuggestionSpanAt(String text, int offset) {
+    if (_lastText != text || _lastSpans == null) return null;
+    for (final span in _lastSpans!) {
+      if (offset >= span.range.start && offset <= span.range.end) {
+        return span;
+      }
+    }
+    return null;
   }
 
   /// Returns the OS-resolved language tag for [locale] (or the platform

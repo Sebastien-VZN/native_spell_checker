@@ -77,4 +77,66 @@ class NativeSpellChecker {
     // Android: let Flutter use DefaultSpellCheckService.
     return const SpellCheckConfiguration();
   }
+
+  /// Builds a context menu that inserts spelling suggestions at the top,
+  /// above the standard Cut/Copy/Paste/Select All buttons.
+  ///
+  /// On desktop (Windows, Linux), this looks up the misspelled word at the
+  /// cursor position in the last spell-check result and adds a button for
+  /// each OS-provided suggestion. Clicking a suggestion replaces the
+  /// misspelled word in the text.
+  ///
+  /// On Android, [service] is `null` — this method returns the standard
+  /// context menu without suggestions. Android's native spell checker
+  /// already provides its own suggestion menu via
+  /// [DefaultSpellCheckService], so the [contextMenuBuilder] parameter
+  /// should be set to `null` on Android.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextField(
+  ///   contextMenuBuilder: (Platform.isWindows || Platform.isLinux)
+  ///       ? NativeSpellChecker.contextMenuBuilder
+  ///       : null,
+  ///   spellCheckConfiguration: NativeSpellChecker.configuration(),
+  /// )
+  /// ```
+  static Widget contextMenuBuilder(BuildContext context, EditableTextState editableTextState) {
+    final svc = service;
+    final buttonItems = editableTextState.contextMenuButtonItems;
+
+    if (svc != null) {
+      final value = editableTextState.textEditingValue;
+      final span = svc.findSuggestionSpanAt(value.text, value.selection.baseOffset);
+
+      if (span != null && span.suggestions.isNotEmpty) {
+        for (final suggestion in span.suggestions) {
+          buttonItems.insert(
+            0,
+            ContextMenuButtonItem(
+              label: suggestion,
+              onPressed: () {
+                final newText = value.text.replaceRange(span.range.start, span.range.end, suggestion);
+                editableTextState
+                  ..userUpdateTextEditingValue(
+                    value.copyWith(
+                      text: newText,
+                      selection: TextSelection.fromPosition(TextPosition(offset: span.range.start + suggestion.length)),
+                    ),
+                    SelectionChangedCause.toolbar,
+                  )
+                  ..hideToolbar();
+              },
+            ),
+          );
+        }
+      }
+    }
+
+    return AdaptiveTextSelectionToolbar.buttonItems(
+      anchors: editableTextState.contextMenuAnchors,
+      buttonItems: buttonItems,
+    );
+  }
 }
