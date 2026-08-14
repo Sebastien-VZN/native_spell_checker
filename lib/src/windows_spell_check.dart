@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:flutter/material.dart';
@@ -10,24 +11,52 @@ import 'package:win32/win32.dart';
 /// Uses the `win32` package to call the Windows COM SpellChecker API directly
 /// via FFI. No native code to compile — all FFI is handled by the `win32`
 /// package.
+///
+/// The whole COM call ([_spawnCheck]) runs in a worker [Isolate] (MTA) so the
+/// UI thread is never blocked: a single spell-check takes ~200 ms on Windows,
+/// which would otherwise freeze the UI at every keystroke.
 class WindowsSpellCheckService extends SpellCheckService {
   /// Creates a [WindowsSpellCheckService].
   WindowsSpellCheckService();
 
-  bool _comInitialized = false;
+  @override
+  Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(Locale locale, String text) async {
+    if (text.isEmpty) return <SuggestionSpan>[];
 
-  void _ensureComInit() {
+    try {
+      // Run the COM-bound work on a fresh worker Isolate. `Isolate.run`
+      // spawns an isolate in the MTA apartment, executes the computation,
+      // and returns the (serialized) result to the UI isolate. The closure
+      // only captures `locale` and `text` (both Dart-serializable), so it
+      // crosses the isolate boundary cleanly — no `this` capture.
+      return await Isolate.run<List<SuggestionSpan>>(() => _spawnCheck(locale, text));
+    } on Exception catch (err) {
+      debugPrint('WindowsSpellCheckService.fetchSpellCheckSuggestions: $err');
+      return null;
+    }
+  }
+
+  // --- Everything below is static: it runs in the worker Isolate and must
+  //     not capture `this`. The COM init flag is per-Isolate (each spawned
+  //     worker gets its own copy, initialized to false). ---
+
+  static bool _comInitialized = false;
+
+  static void _ensureComInit() {
     if (_comInitialized) return;
-    final hr = CoInitializeEx(COINIT_MULTITHREADED);
-    // S_FALSE (1) means already initialized on this thread — that's fine.
-    if (hr.isError && hr != S_FALSE) {
+    final hr = CoInitializeEx(COINIT_APARTMENTTHREADED);
+    // S_FALSE: already initialized on this thread with the same apartment.
+    // RPC_E_CHANGED_MODE: already initialized with a different apartment
+    //   (the worker Isolate thread is MTA). The existing apartment wins;
+    //   WinRT SpellChecker objects are agile and work in either — proceed.
+    if (hr.isError && hr != S_FALSE && hr != RPC_E_CHANGED_MODE) {
       throw WindowsException(hr);
     }
     _comInitialized = true;
   }
 
   /// Converts a [Locale] to a Windows language tag (e.g. "fr-FR", "en-US").
-  String _localeToLanguageTag(Locale locale) {
+  static String _localeToLanguageTag(Locale locale) {
     final language = locale.languageCode.toLowerCase();
     final country = locale.countryCode?.toUpperCase();
     if (country != null && country.isNotEmpty) {
@@ -38,7 +67,7 @@ class WindowsSpellCheckService extends SpellCheckService {
 
   /// Resolves the language tag, falling back to the system default if the
   /// requested locale is not supported.
-  String _resolveLanguageTag(ISpellCheckerFactory factory, Arena arena, Locale locale) {
+  static String _resolveLanguageTag(ISpellCheckerFactory factory, Arena arena, Locale locale) {
     final requestedTag = _localeToLanguageTag(locale);
     if (factory.isSupported(arena.pcwstr(requestedTag))) {
       return requestedTag;
@@ -58,18 +87,7 @@ class WindowsSpellCheckService extends SpellCheckService {
     return 'en-US';
   }
 
-  @override
-  Future<List<SuggestionSpan>?> fetchSpellCheckSuggestions(Locale locale, String text) async {
-    if (text.isEmpty) return <SuggestionSpan>[];
-
-    try {
-      return _checkInternal(locale, text);
-    } on Exception {
-      return null;
-    }
-  }
-
-  List<SuggestionSpan> _checkInternal(Locale locale, String text) {
+  static List<SuggestionSpan> _spawnCheck(Locale locale, String text) {
     _ensureComInit();
 
     return using((arena) {
@@ -111,7 +129,7 @@ class WindowsSpellCheckService extends SpellCheckService {
   }
 
   /// Collects suggestions for a misspelled word from the spell checker.
-  List<String> _collectSuggestions(ISpellChecker2 checker, String word, Arena arena) {
+  static List<String> _collectSuggestions(ISpellChecker2 checker, String word, Arena arena) {
     final suggestions = <String>[];
     final enumSuggestions = arena.adopt(checker.suggest(arena.pcwstr(word))!);
     final fetched = arena<ULONG>();

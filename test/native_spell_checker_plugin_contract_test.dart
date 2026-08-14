@@ -104,23 +104,11 @@ void main() {
       NativeSpellChecker.registerWith();
     });
 
-    test('registerWith() ne change pas la disponibilité du service', () {
-      // On compare la *disponibilité* (null / non-null) plutôt que l'identité
-      // d'instance : `NativeSpellChecker.service` construit actuellement une
-      // nouvelle instance à chaque appel (cf. NativeSpellCheckService.instance),
-      // ce qui rend `identical()` non-pertinent. Le contrat de `registerWith()`
-      // est qu'elle n'altère pas la disponibilité observée du service.
-      final isAvailableBefore = NativeSpellChecker.service != null;
-
+    test('registerWith() ne mute pas NativeSpellChecker.service (singleton stable)', () {
+      final before = NativeSpellChecker.service;
       NativeSpellChecker.registerWith();
-
-      final isAvailableAfter = NativeSpellChecker.service != null;
-      expect(
-        isAvailableAfter,
-        isAvailableBefore,
-        reason: '`registerWith()` doit être un no-op : la disponibilité du '
-            'service (null vs non-null) doit être stable avant/après invocation.',
-      );
+      final after = NativeSpellChecker.service;
+      expect(after, same(before));
     });
   });
 }

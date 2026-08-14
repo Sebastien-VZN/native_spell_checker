@@ -5,7 +5,7 @@
 /// [DefaultSpellCheckService].
 library;
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:native_spell_checker/src/native_spell_check_service.dart';
@@ -19,6 +19,12 @@ export 'package:flutter/widgets.dart' show SpellCheckConfiguration;
 /// falls back to [DefaultSpellCheckService] automatically.
 class NativeSpellChecker {
   const NativeSpellChecker._();
+
+  static const TextStyle _defaultMisspelledTextStyle = TextStyle(
+    decoration: TextDecoration.underline,
+    decorationColor: Colors.red,
+    decorationStyle: TextDecorationStyle.wavy,
+  );
 
   /// Required by Flutter's plugin registration system for federated plugins
   /// using `dartPluginClass`. This plugin is pure Dart (no native code), so
@@ -40,8 +46,8 @@ class NativeSpellChecker {
     final svc = service;
     if (svc != null) {
       return SpellCheckConfiguration(
-        spellCheckService: svc as SpellCheckService,
-        misspelledTextStyle: misspelledTextStyle,
+        spellCheckService: svc,
+        misspelledTextStyle: misspelledTextStyle ?? _defaultMisspelledTextStyle,
       );
     }
     // Android: let Flutter use DefaultSpellCheckService.

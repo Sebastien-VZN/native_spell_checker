@@ -16,19 +16,24 @@ import 'package:native_spell_checker/src/windows_spell_check.dart';
 class NativeSpellCheckService extends SpellCheckService {
   NativeSpellCheckService._internal(this._delegate);
 
+  static NativeSpellCheckService? _instance;
+
   final SpellCheckService _delegate;
 
   /// Returns the platform-appropriate [NativeSpellCheckService], or `null`
-  /// on Android (where Flutter's `DefaultSpellCheckService` is used).
+  /// on Android (where Flutter's [DefaultSpellCheckService] is used).
+  ///
+  /// The instance is memoized: the OS backend (and its COM session on Windows)
+  /// is constructed once per process and reused across calls.
   static NativeSpellCheckService? get instance {
+    if (_instance != null) return _instance;
     if (Platform.isWindows) {
-      return NativeSpellCheckService._internal(WindowsSpellCheckService());
+      _instance = NativeSpellCheckService._internal(WindowsSpellCheckService());
+    } else if (Platform.isLinux) {
+      _instance = NativeSpellCheckService._internal(LinuxSpellCheckService());
     }
-    if (Platform.isLinux) {
-      return NativeSpellCheckService._internal(LinuxSpellCheckService());
-    }
-    // Android: null → Flutter uses DefaultSpellCheckService.
-    return null;
+    // Android: _instance stays null → Flutter uses DefaultSpellCheckService.
+    return _instance;
   }
 
   @override
