@@ -80,4 +80,4 @@ Returns `null` on Android (where the plugin defers to Flutter). Use
 
 ## License
 
-MIT
+MIT — see [LICENSE](../../LICENSE).
