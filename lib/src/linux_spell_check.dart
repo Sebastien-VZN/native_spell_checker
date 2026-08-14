@@ -159,7 +159,9 @@ class LinuxSpellCheckService extends NativeSpellCheckBackend {
     if (text.isEmpty) return <SuggestionSpan>[];
 
     _ensureBindings();
-    _ensureDictionary(locale);
+    // Always use the OS native locale, not the one Flutter passes (which
+    // defaults to en_US when the app doesn't declare supportedLocales).
+    _ensureDictionary(_localeFromPlatformName());
 
     if (_handle == null || _bindings == null) return null;
 

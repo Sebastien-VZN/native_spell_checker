@@ -28,9 +28,13 @@ class WindowsSpellCheckService extends NativeSpellCheckBackend {
       // Run the COM-bound work on a fresh worker Isolate. `Isolate.run`
       // spawns an isolate in the MTA apartment, executes the computation,
       // and returns the (serialized) result to the UI isolate. The closure
-      // only captures `locale` and `text` (both Dart-serializable), so it
-      // crosses the isolate boundary cleanly — no `this` capture.
-      return await Isolate.run<List<SuggestionSpan>>(() => _spawnCheck(locale, text));
+      // only captures `text` (Dart-serializable), so it crosses the isolate
+      // boundary cleanly — no `this` capture.
+      //
+      // Pass null as the locale so _resolveLanguageTag uses the OS native
+      // locale (GetUserDefaultLocaleName) instead of the one Flutter passes,
+      // which defaults to en_US when the app doesn't declare supportedLocales.
+      return await Isolate.run<List<SuggestionSpan>>(() => _spawnCheck(null, text));
     } on Exception catch (err) {
       debugPrint('WindowsSpellCheckService.fetchSpellCheckSuggestions: $err');
       return null;
@@ -120,7 +124,7 @@ class WindowsSpellCheckService extends NativeSpellCheckBackend {
     });
   }
 
-  static List<SuggestionSpan> _spawnCheck(Locale locale, String text) {
+  static List<SuggestionSpan> _spawnCheck(Locale? locale, String text) {
     _ensureComInit();
 
     return using((arena) {

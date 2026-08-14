@@ -50,9 +50,12 @@ void main() {
       if (service == null) {
         expect(service, isNull, reason: 'Backend unavailable on this platform.');
       } else {
+        // The plugin uses the OS native locale, not the one passed by Flutter.
+        // "hello" is valid in both English and French (emprunt), so this test
+        // works regardless of which dictionary the OS loads.
         final List<SuggestionSpan>? result = await service.fetchSpellCheckSuggestions(
           const Locale('en', 'US'),
-          'hello world',
+          'hello',
         );
         expect(result, isA<List<SuggestionSpan>>());
         expect(result, isNotNull);
@@ -64,10 +67,8 @@ void main() {
       if (service == null) {
         expect(service, isNull, reason: 'Backend unavailable on this platform.');
       } else {
-        final List<SuggestionSpan>? result = await service.fetchSpellCheckSuggestions(
-          const Locale('en', 'US'),
-          'hello wrld',
-        );
+        // "wrld" is misspelled in every language.
+        final List<SuggestionSpan>? result = await service.fetchSpellCheckSuggestions(const Locale('en', 'US'), 'wrld');
         expect(result, isA<List<SuggestionSpan>>());
         expect(result, isNotNull);
         expect(result!, isNotEmpty);
