@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.2
+
+### Changed
+
+- Removed the pub.dev badge images from `README.md` and `README_FR.md`
+  — they kept regenerating stale pub stats and cluttered the top of the
+  docs. No content lost.
+- Added analyzer `exclude` entries for the generated platform folders
+  (`android/`, `ios/`, `web/`, `windows/`, `macos/`, `linux/`) in both
+  `analysis_options.yaml` and `example/analysis_options.yaml`, so the
+  linter no longer analyzes the generated native scaffolding.
+- Aligned the example app's Android build tooling to a mutually
+  compatible set: Gradle 9.6.1 → 9.3.1, Android Gradle Plugin 9.3.1 →
+  9.1.0, Kotlin 2.3.10 → 2.4.0; dropped the now-unneeded
+  `android.sync.suppressAgpWarnings` flag in
+  `example/android/gradle.properties`.
+
+No API or behavior change for consumers.
+
 ## 0.4.1
 
 ### Changed

@@ -1,6 +1,6 @@
 name: native_spell_checker
 description: Native OS spell checking for Flutter — zero bundled dictionaries, uses the built-in system checker on Windows, Linux, and Android.
-version: 0.4.1
+version: 0.4.2
 repository: https://github.com/Sebastien-VZN/native_spell_checker
 license: MIT
 
